@@ -1,37 +1,40 @@
-/*!
-
-=========================================================
-* Paper Kit React - v1.3.2
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/paper-kit-react
-
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/paper-kit-react/blob/main/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-import React from "react";
-
-// reactstrap components
-import { Button, Card, Form, Input, Container, Row, Col } from "reactstrap";
-
-// core components
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  Container,
+  Row,
+  Col,
+} from "reactstrap";
 import ExamplesNavbar from "components/Navbars/ExamplesNavbar.js";
 
 function RegisterPage() {
-  document.documentElement.classList.remove("nav-open");
-  React.useEffect(() => {
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
     document.body.classList.add("register-page");
     return function cleanup() {
       document.body.classList.remove("register-page");
     };
-  });
+  }, []);
+
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post("http://localhost:5000/api/vendors/register", formData);
+      setMessage("✅ Registration successful!");
+    } catch (err) {
+      setMessage(err.response?.data?.message || "❌ Registration failed.");
+    }
+  };
+
   return (
     <>
       <ExamplesNavbar />
@@ -47,46 +50,43 @@ function RegisterPage() {
             <Col className="ml-auto mr-auto" lg="4">
               <Card className="card-register ml-auto mr-auto">
                 <h3 className="title mx-auto">Become a Vendor</h3>
-                <div className="social-line text-center">
-                  <Button
-                    className="btn-neutral btn-just-icon mr-1"
-                    color="facebook"
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <i className="fa fa-facebook-square" />
-                  </Button>
-                  <Button
-                    className="btn-neutral btn-just-icon mr-1"
-                    color="google"
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <i className="fa fa-google-plus" />
-                  </Button>
-                  <Button
-                    className="btn-neutral btn-just-icon"
-                    color="twitter"
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <i className="fa fa-twitter" />
-                  </Button>
-                </div>
-                <Form className="register-form">
+                <Form className="register-form" onSubmit={handleSubmit}>
+                  <label>Full Name</label>
+                  <Input
+                    name="name"
+                    placeholder="Name"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
                   <label>Email</label>
-                  <Input placeholder="Email" type="text" />
+                  <Input
+                    name="email"
+                    placeholder="Email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
                   <label>Password</label>
-                  <Input placeholder="Password" type="password" />
-                  <Button block className="btn-round" color="danger">
+                  <Input
+                    name="password"
+                    placeholder="Password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                  <Button block className="btn-round" color="danger" type="submit">
                     Register
                   </Button>
+                  {message && <p className="text-center mt-2">{message}</p>}
                 </Form>
                 <div className="forgot">
                   <Button
                     className="btn-link"
                     color="danger"
-                    href="#pablo"
                     onClick={(e) => e.preventDefault()}
                   >
                     Forgot password?
