@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { AuthProvider } from "contexts/AuthContext";
+import ProtectedRoute from "components/ProtectedRoute";
 
 // styles
 import "bootstrap/scss/bootstrap.scss";
@@ -20,15 +22,24 @@ import VendorManagement from "pages/VendorManagement.js";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/index" element={<Index />} />
-      <Route path="/landing-page" element={<LandingPage />} />
-      <Route path="/profile-page" element={<ProfilePage />} />
-      <Route path="/register-page" element={<RegisterPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/vendors" element={<VendorManagement />} />
-      <Route path="/" element={<Index />} />
-    </Routes>
-  </BrowserRouter>
+  <React.StrictMode>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/index" element={<Index />} />
+          <Route path="/landing-page" element={<LandingPage />} />
+          <Route path="/profile-page" element={<ProfilePage />} />
+          <Route path="/register-page" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/vendors" element={
+            <ProtectedRoute>
+              <VendorManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/" element={<Index />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  </React.StrictMode>
 );

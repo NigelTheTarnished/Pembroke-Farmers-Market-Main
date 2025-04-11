@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../../contexts/AuthContext";
 
 // reactstrap components
 import {
@@ -14,10 +15,12 @@ import {
 } from "reactstrap";
 
 function LoginPage() {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -31,20 +34,12 @@ function LoginPage() {
     e.preventDefault();
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData
-      );
-
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        // Get the redirect URL from localStorage or default to /vendors
-        const redirectUrl = localStorage.getItem("redirectUrl") || "/vendors";
-        localStorage.removeItem("redirectUrl"); // Clear the saved URL
-        navigate(redirectUrl);
+      if (await login(formData)) {
+        // Successful login, navigate to vendors page
+        navigate("/vendors");
       }
     } catch (err) {
-      console.error('Login error:', err.response?.data || err.message);
+      setError("Login failed. Please check your credentials.");
     }
   };
 
@@ -80,6 +75,7 @@ function LoginPage() {
                   onChange={handleChange}
                   required
                 />
+                {error && <p style={{ color: "red" }}>{error}</p>}
                 <Button block className="btn-round" color="danger" type="submit">
                   Login
                 </Button>
