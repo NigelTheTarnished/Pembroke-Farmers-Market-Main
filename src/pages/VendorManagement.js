@@ -28,21 +28,46 @@ const VendorManagement = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
-    try {
-      if (editingId) {
-        await axios.put(`${baseURL}/${editingId}`, formData);
-      } else {
-        await axios.post(baseURL, formData);
-      }
-      setFormData({ name: '', type: '', status: '', email: '', phone: '' });
-      setEditingId(null);
-      fetchVendors();
-    } catch (error) {
-      console.error("Error submitting vendor:", error.message);
+/*const handleSubmit = async e => {
+  e.preventDefault();
+  try {
+    if (editingId) {
+      await axios.put(`${baseURL}/${editingId}`, formData);
+    } else {
+      await axios.post(baseURL, formData);
     }
-  };
+ 
+    setFormData({ name: '', type: '', status: '', email: '', phone: '' });
+    setEditingId(null);
+    fetchVendors();
+  } catch (error) {
+    console.error("Error submitting vendor:", error.response?.data || error.message);
+  }
+};*/
+const handleSubmit = async e => {
+  e.preventDefault();
+  try {
+    const payload = {
+      ...formData,
+      status: Number(formData.status) // 👈 Convert to number
+    };
+
+    if (editingId) {
+      await axios.put(`${baseURL}/${editingId}`, payload);
+    } else {
+      await axios.post(`${baseURL}/register`, payload);
+    }
+
+    setFormData({ name: '', type: '', status: '', email: '', phone: '' });
+    setEditingId(null);
+    fetchVendors();
+  } catch (error) {
+    console.error("Error submitting vendor:", error.response?.data || error.message);
+  }
+};
+
+  
+
 
   const handleEdit = vendor => {
     setFormData({
@@ -67,26 +92,58 @@ const VendorManagement = () => {
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: '2rem', color: 'black' }}>
       <h2>Vendor Management</h2>
       <form onSubmit={handleSubmit}>
         <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
         <input name="type" placeholder="Type" value={formData.type} onChange={handleChange} required />
-        <input name="status" placeholder="Status" value={formData.status} onChange={handleChange} required />
+        <select name="status" value={formData.status} onChange={handleChange} required>
+          <option value="">Select Status</option>
+          <option value="0">Suspended</option>
+          <option value="1">Active</option>
+          <option value="2">Pending</option>
+          <option value="3">Inactive</option>
+        </select>
         <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
         <input name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} required />
         <button type="submit">{editingId ? 'Update' : 'Add'} Vendor</button>
       </form>
 
-      <ul>
-        {vendors.map(v => (
-          <li key={v._id}>
-            {v.name} | {v.type} | {v.status} | {v.email} | {v.phone}
-            <button onClick={() => handleEdit(v)}>Edit</button>
-            <button onClick={() => handleDelete(v._id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      <table border="1" cellPadding="8" cellSpacing="0" style={{ marginTop: '2rem', width: '100%', color: 'black' }}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {vendors.map(v => (
+            <tr key={v._id}>
+              <td>{v.name || '-'}</td>
+              <td>{v.type || '-'}</td>
+              <td>
+                {{
+                  0: 'Suspended',
+                  1: 'Active',
+                  2: 'Pending',
+                  3: 'Inactive'
+                }[v.status] || '-'}
+              </td>
+              <td>{v.email || '-'}</td>
+              <td>{v.phone || '-'}</td>
+              <td>
+                <button onClick={() => handleEdit(v)}>Edit</button>{' '}
+                <button onClick={() => handleDelete(v._id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
     </div>
   );
 };

@@ -25,6 +25,9 @@ import { Button, Container, Row, Col } from "reactstrap";
 import { LoadScript, GoogleMap, Marker } from "@react-google-maps/api";
 
 function SectionNucleoIcons() {
+  const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+  console.log("API Key available:", !!apiKey);
+
   const mapStyles = {
     height: "400px",
     width: "100%",
@@ -39,6 +42,14 @@ function SectionNucleoIcons() {
     width: "100%",
     padding: "20px",
     marginTop: "100px"
+  };
+
+  const mapOptions = {
+    disableDefaultUI: false,
+    zoomControl: true,
+    fullscreenControl: true,
+    streetViewControl: true,
+    mapTypeControl: true
   };
 
   const marketLocation = {
@@ -69,20 +80,30 @@ function SectionNucleoIcons() {
             </Col>
             <Col lg="6" md="12">
               <div className="icons-container" style={containerStyles}>
-                <LoadScript 
-                  googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
-                >
-                  <GoogleMap
-                    mapContainerStyle={mapStyles}
-                    zoom={16}
-                    center={marketLocation}
+                {apiKey ? (
+                  <LoadScript 
+                    googleMapsApiKey={apiKey}
+                    onError={(error) => console.error("Maps Load Error:", error)}
                   >
-                    <Marker
-                      position={marketLocation}
-                      title="Pembroke Farmers' Market"
-                    />
-                  </GoogleMap>
-                </LoadScript>
+                    <GoogleMap
+                      mapContainerStyle={mapStyles}
+                      zoom={16}
+                      center={marketLocation}
+                      onLoad={() => console.log("Map loaded successfully")}
+                      onError={(error) => console.error("Map Error:", error)}
+                      options={mapOptions}
+                    >
+                      <Marker
+                        position={marketLocation}
+                        title="Pembroke Farmers' Market"
+                      />
+                    </GoogleMap>
+                  </LoadScript>
+                ) : (
+                  <div>
+                    <h2>Google Maps API Key is not available.</h2>
+                  </div>
+                )}
               </div>
             </Col>
           </Row>

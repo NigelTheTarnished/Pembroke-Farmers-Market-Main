@@ -79,7 +79,7 @@ function SectionCarousel() {
         <Card className="page-carousel" style={{ 
           margin: "0 auto", 
           maxWidth: "1800px",
-          height: "calc(65vh - 2rem)"
+          height: "calc(105vh - 2rem)"
         }}>
           <Carousel
             activeIndex={activeIndex}
@@ -102,7 +102,7 @@ function SectionCarousel() {
                     src={item.src} 
                     alt={item.altText} 
                     style={{ 
-                      height: "calc(65vh - 2rem)",
+                      height: "calc(105vh - 2rem)",
                       objectFit: "cover",
                       width: "100%"
                     }}

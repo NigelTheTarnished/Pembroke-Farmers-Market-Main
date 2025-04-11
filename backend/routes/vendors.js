@@ -21,7 +21,7 @@ router.post('/register', async (req, res) => {
 
   const { name, email, password } = req.body;
   const vendor = new Vendor({name, email, password});
-  await vendor.save
+  await vendor.save();
 //router.post('/', auth, async (req, res) => {
 /*   const vendor = new Vendor({
      name: req.body.name,

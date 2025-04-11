@@ -5,11 +5,18 @@ const vendorSchema = new mongoose.Schema({
   type: {
     type: String,
   },
-  status: {
+
+  password: {
     type: String,
-    enum: ['Active', 'Pending', 'Inactive'],
-    default: 'Pending'
+    required: true
   },
+  
+  status: {
+    type: Number,
+    enum: [0, 1, 2, 3],
+    default: 2 
+  },
+  
   email: {
     type: String,
     required: true,
