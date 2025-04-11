@@ -1,115 +1,175 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { isAuthenticated } from '../utils/auth';
 
+// reactstrap components
+import {
+  Table,
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  Container,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from 'reactstrap';
 
-const baseURL = "http://localhost:5000/api/vendors";
-
-const VendorManagement = () => {
+function VendorManagement() {
   const [vendors, setVendors] = useState([]);
+  const [editingVendor, setEditingVendor] = useState(null);
   const [formData, setFormData] = useState({
-    name: '', type: '', status: '', email: '', phone: ''
+    name: '',
+    type: '',
+    status: 'Active',
+    email: '',
+    phone: '',
   });
-  const [editingId, setEditingId] = useState(null);
+  const [modal, setModal] = useState(false);
+  const navigate = useNavigate();
 
-  const fetchVendors = async () => {
-    try {
-      const res = await axios.get(baseURL);
-      setVendors(res.data);
-    } catch (error) {
-      console.error("Error fetching vendors:", error.message);
-    }
-  };
-
+  // Check authentication on component mount
   useEffect(() => {
-    fetchVendors();
-  }, []);
-
-  const handleChange = e => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-/*const handleSubmit = async e => {
-  e.preventDefault();
-  try {
-    if (editingId) {
-      await axios.put(`${baseURL}/${editingId}`, formData);
-    } else {
-      await axios.post(baseURL, formData);
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
     }
- 
-    setFormData({ name: '', type: '', status: '', email: '', phone: '' });
-    setEditingId(null);
-    fetchVendors();
-  } catch (error) {
-    console.error("Error submitting vendor:", error.response?.data || error.message);
-  }
-};*/
-const handleSubmit = async e => {
-  e.preventDefault();
-  try {
-    const payload = {
-      ...formData,
-      status: Number(formData.status) // 👈 Convert to number
+
+    // Fetch vendors
+    const fetchVendors = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/vendors', {
+          headers: {
+            'x-auth-token': localStorage.getItem('token')
+          }
+        });
+        setVendors(response.data);
+      } catch (error) {
+        console.error('Error fetching vendors:', error);
+        if (error.response?.status === 401) {
+          navigate('/login');
+        }
+      }
     };
 
-    if (editingId) {
-      await axios.put(`${baseURL}/${editingId}`, payload);
-    } else {
-      await axios.post(`${baseURL}/register`, payload);
-    }
-
-    setFormData({ name: '', type: '', status: '', email: '', phone: '' });
-    setEditingId(null);
     fetchVendors();
-  } catch (error) {
-    console.error("Error submitting vendor:", error.response?.data || error.message);
-  }
-};
+  }, [navigate]);
 
-  
-
-
-  const handleEdit = vendor => {
-    setFormData({
-      name: vendor.name || '',
-      type: vendor.type || '',
-      status: vendor.status || '',
-      email: vendor.email || '',
-      phone: vendor.phone || ''
-    });
-    setEditingId(vendor._id);
+  const toggle = () => {
+    setModal(!modal);
+    if (!modal) {
+      setFormData({
+        name: '',
+        type: '',
+        status: 'Active',
+        email: '',
+        phone: '',
+      });
+      setEditingVendor(null);
+    }
   };
 
-  const handleDelete = async id => {
-    console.log("Trying to delete vendor with ID:", id);
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      await axios.delete(`${baseURL}/${id}`);
-      console.log("Delete successful");
-      fetchVendors();
+      if (editingVendor) {
+        await axios.put(
+          `http://localhost:5000/api/vendors/${editingVendor._id}`,
+          formData,
+          {
+            headers: {
+              'x-auth-token': localStorage.getItem('token')
+            }
+          }
+        );
+      } else {
+        await axios.post(
+          'http://localhost:5000/api/vendors',
+          formData,
+          {
+            headers: {
+              'x-auth-token': localStorage.getItem('token')
+            }
+          }
+        );
+      }
+      const response = await axios.get(
+        'http://localhost:5000/api/vendors',
+        {
+          headers: {
+            'x-auth-token': localStorage.getItem('token')
+          }
+        }
+      );
+      setVendors(response.data);
+      toggle();
     } catch (error) {
-      console.error("Delete failed:", error.response?.data || error.message);
+      console.error('Error saving vendor:', error);
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
+    }
+  };
+
+  const handleEdit = (vendor) => {
+    setEditingVendor(vendor);
+    setFormData({
+      name: vendor.name,
+      type: vendor.type,
+      status: vendor.status,
+      email: vendor.email,
+      phone: vendor.phone,
+    });
+    toggle();
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this vendor?')) {
+      try {
+        await axios.delete(
+          `http://localhost:5000/api/vendors/${id}`,
+          {
+            headers: {
+              'x-auth-token': localStorage.getItem('token')
+            }
+          }
+        );
+        const response = await axios.get(
+          'http://localhost:5000/api/vendors',
+          {
+            headers: {
+              'x-auth-token': localStorage.getItem('token')
+            }
+          }
+        );
+        setVendors(response.data);
+      } catch (error) {
+        console.error('Error deleting vendor:', error);
+        if (error.response?.status === 401) {
+          navigate('/login');
+        }
+      }
     }
   };
 
   return (
-    <div style={{ padding: '2rem', color: 'black' }}>
-      <h2>Vendor Management</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
-        <input name="type" placeholder="Type" value={formData.type} onChange={handleChange} required />
-        <select name="status" value={formData.status} onChange={handleChange} required>
-          <option value="">Select Status</option>
-          <option value="0">Suspended</option>
-          <option value="1">Active</option>
-          <option value="2">Pending</option>
-          <option value="3">Inactive</option>
-        </select>
-        <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} required />
-        <button type="submit">{editingId ? 'Update' : 'Add'} Vendor</button>
-      </form>
+    <Container>
+      <h1>Vendor Management</h1>
+      <Button color="primary" onClick={toggle} className="mb-3">
+        Add Vendor
+      </Button>
 
-      <table border="1" cellPadding="8" cellSpacing="0" style={{ marginTop: '2rem', width: '100%', color: 'black' }}>
+      <Table>
         <thead>
           <tr>
             <th>Name</th>
@@ -121,31 +181,113 @@ const handleSubmit = async e => {
           </tr>
         </thead>
         <tbody>
-          {vendors.map(v => (
-            <tr key={v._id}>
-              <td>{v.name || '-'}</td>
-              <td>{v.type || '-'}</td>
+          {vendors.map((vendor) => (
+            <tr key={vendor._id}>
+              <td>{vendor.name}</td>
+              <td>{vendor.type}</td>
+              <td>{vendor.status}</td>
+              <td>{vendor.email}</td>
+              <td>{vendor.phone}</td>
               <td>
-                {{
-                  0: 'Suspended',
-                  1: 'Active',
-                  2: 'Pending',
-                  3: 'Inactive'
-                }[v.status] || '-'}
-              </td>
-              <td>{v.email || '-'}</td>
-              <td>{v.phone || '-'}</td>
-              <td>
-                <button onClick={() => handleEdit(v)}>Edit</button>{' '}
-                <button onClick={() => handleDelete(v._id)}>Delete</button>
+                <Button
+                  color="info"
+                  size="sm"
+                  onClick={() => handleEdit(vendor)}
+                  className="mr-2"
+                >
+                  Edit
+                </Button>
+                <Button
+                  color="danger"
+                  size="sm"
+                  onClick={() => handleDelete(vendor._id)}
+                >
+                  Delete
+                </Button>
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
 
-    </div>
+      <Modal isOpen={modal} toggle={toggle}>
+        <Form onSubmit={handleSubmit}>
+          <ModalHeader toggle={toggle}>
+            {editingVendor ? 'Edit Vendor' : 'Add Vendor'}
+          </ModalHeader>
+          <ModalBody>
+            <FormGroup>
+              <Label for="name">Name</Label>
+              <Input
+                type="text"
+                name="name"
+                id="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="type">Type</Label>
+              <Input
+                type="text"
+                name="type"
+                id="type"
+                value={formData.type}
+                onChange={handleInputChange}
+                required
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="status">Status</Label>
+              <Input
+                type="select"
+                name="status"
+                id="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                required
+              >
+                <option>Active</option>
+                <option>Inactive</option>
+                <option>Pending</option>
+              </Input>
+            </FormGroup>
+            <FormGroup>
+              <Label for="email">Email</Label>
+              <Input
+                type="email"
+                name="email"
+                id="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="phone">Phone</Label>
+              <Input
+                type="tel"
+                name="phone"
+                id="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+              />
+            </FormGroup>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" type="submit">
+              {editingVendor ? 'Update' : 'Add'}
+            </Button>
+            <Button color="secondary" onClick={toggle}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </Form>
+      </Modal>
+    </Container>
   );
-};
+}
 
 export default VendorManagement;

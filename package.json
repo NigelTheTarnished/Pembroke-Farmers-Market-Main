@@ -7,9 +7,12 @@
     "ajv": "^8.17.1",
     "axios": "^1.8.4",
     "classnames": "2.3.2",
+    "date-fns": "^4.1.0",
+    "jwt-decode": "^4.0.0",
     "moment": "2.29.4",
     "nouislider": "15.4.0",
     "react": "^18.0.0",
+    "react-big-calendar": "^1.18.0",
     "react-datetime": "3.2.0",
     "react-dom": "^18.0.0",
     "react-popper": "^2.2.5",
@@ -82,6 +85,9 @@
   "bugs": {
     "url": "https://github.com/creativetimofficial/paper-kit-react/issues"
   },
-  "homepage": "https://demos.creative-tim.com/paper-kit-react/#/index"
-
+  "homepage": "/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/creativetimofficial/paper-kit-react.git"
+  }
 }

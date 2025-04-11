@@ -1,15 +1,31 @@
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 export const isAuthenticated = () => {
-  const token = localStorage.getItem("token");
-  if (!token) return false;
-  
   try {
+    const token = localStorage.getItem("token");
+    if (!token) return false;
+    
+    // Try to decode the token
     const decoded = jwtDecode(token);
-    return decoded.exp * 1000 > Date.now(); // Check if token is expired
-  } catch {
+    
+    // Get current time in seconds
+    const currentTime = Date.now() / 1000;
+    
+    // Check if token is expired
+    if (decoded.exp < currentTime) {
+      console.log('Token expired');
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Error checking authentication:', err);
     return false;
   }
+};
+
+export const getToken = () => {
+  return localStorage.getItem("token");
 };
 
 export const logout = () => {
